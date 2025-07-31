@@ -53,7 +53,7 @@ const PORT = process.env.PORT || 5000;
 const IP = getLocalIP();
 
 sequelize
-  .sync({ alter: true })
+  .sync() // ❌ Removed { alter: true } for production safety
   .then(() => {
     const time = new Date().toLocaleString();
     console.log(`✅ Connected to DB at ${time}`);
@@ -66,5 +66,5 @@ sequelize
     });
   })
   .catch((err) => {
-    console.error("❌ DB Connection Failed:", err);
+    console.error("❌ DB Connection Failed:", err.message); // ✅ Cleaned up error output
   });
