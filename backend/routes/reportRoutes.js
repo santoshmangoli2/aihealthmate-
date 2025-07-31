@@ -1,31 +1,27 @@
 // backend/routes/reportRoutes.js
 const express = require("express");
 const router = express.Router();
+
+const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
-const { Report } = require("../models");
 
-router.post("/upload", upload.single("file"), async (req, res) => {
-  try {
-    const { patientId, type, uploadedBy } = req.body;
+const {
+  uploadReport,
+  getAllReports,
+  getUserReports,
+  deleteReport,
+} = require("../controllers/reportController");
 
-    const newReport = await Report.create({
-      filename: req.file.originalname,
-      filepath: req.file.path,
-      uploadedBy,
-      patientId,
-      type,
-    });
+// Patient uploads a report
+router.post("/upload", protect, upload.single("file"), uploadReport);
 
-    res.status(201).json(newReport);
-  } catch (err) {
-    res.status(500).json({ error: "Upload failed", details: err.message });
-  }
-});
+// Doctor or patient views all reports (filtered by role in controller)
+router.get("/", protect, getAllReports);
 
-router.get("/:patientId", async (req, res) => {
-  const { patientId } = req.params;
-  const reports = await Report.findAll({ where: { patientId } });
-  res.json(reports);
-});
+// Patient views their own reports
+router.get("/my", protect, getUserReports);
+
+// Delete a report
+router.delete("/:id", protect, deleteReport);
 
 module.exports = router;

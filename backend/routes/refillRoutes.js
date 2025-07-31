@@ -7,7 +7,8 @@ const {
   updateRefillStatus,
 } = require("../controllers/refillController");
 
-const { protect, restrictTo } = require("../middleware/authMiddleware");
+const { restrictTo } = require("../middleware/roleMiddleware"); // ✅ FIXED PATH
+const { protect } = require("../middleware/authMiddleware"); // ✅ make sure protect is imported too
 
 // Patient creates request
 router.post("/", protect, restrictTo("patient"), createRefillRequest);
@@ -19,6 +20,6 @@ router.get("/my", protect, restrictTo("patient"), getPatientRefills);
 router.get("/doctor", protect, restrictTo("doctor"), getDoctorRefills);
 
 // Doctor updates status
-router.put("/:id", protect, restrictTo("doctor"), updateRefillStatus);
+router.put(":id", protect, restrictTo("doctor"), updateRefillStatus);
 
 module.exports = router;

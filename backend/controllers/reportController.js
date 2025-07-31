@@ -1,54 +1,25 @@
-const PDFDocument = require("pdfkit");
-const { User, Appointment, Feedback } = require("../models");
-
-exports.downloadDoctorPatientReport = async (req, res) => {
+// backend/controllers/reportController.js
+exports.uploadReport = async (req, res) => {
   try {
-    const doctorId = req.params.id;
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
 
-    // Fetch patients with appointments
-    const appointments = await Appointment.findAll({
-      where: { doctorId },
-      include: [{ model: User, as: "Patient", attributes: ["fullName", "email"] }],
+    // Save file details in DB if needed here
+
+    res.status(201).json({
+      message: "Report uploaded successfully",
+      filename: file.filename,
+      path: `/uploads/${file.filename}`,
     });
-
-    // Group by patient
-    const patientMap = new Map();
-
-    appointments.forEach((a) => {
-      const patientId = a.Patient.id;
-      if (!patientMap.has(patientId)) {
-        patientMap.set(patientId, {
-          name: a.Patient.fullName,
-          email: a.Patient.email,
-          visits: 1,
-        });
-      } else {
-        patientMap.get(patientId).visits++;
-      }
-    });
-
-    // Create PDF
-    const doc = new PDFDocument();
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "attachment; filename=patient_report.pdf");
-    doc.pipe(res);
-
-    doc.fontSize(20).text("Patient Report Summary", { align: "center" });
-    doc.moveDown();
-
-    let index = 1;
-    patientMap.forEach((data) => {
-      doc
-        .fontSize(12)
-        .text(
-          `${index++}. Name: ${data.name}\n   Email: ${data.email}\n   Visits: ${data.visits}\n`
-        )
-        .moveDown(0.5);
-    });
-
-    doc.end();
-  } catch (error) {
-    console.error("Failed to generate report:", error);
-    res.status(500).json({ error: "Failed to generate report" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 };
+
+// Stub other controllers for now
+exports.getAllReports = async (req, res) => res.send("All reports");
+exports.getUserReports = async (req, res) => res.send("User reports");
+exports.deleteReport = async (req, res) => res.send("Report deleted");
